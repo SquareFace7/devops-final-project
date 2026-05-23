@@ -1,0 +1,38 @@
+---
+- name: integration of terraform and ansible
+  hosts: all
+  become: true  # מריץ את ההתקנות עם הרשאות מנהל
+
+  tasks:
+    - name: installing httpd
+      package:
+        name: httpd
+        state: present
+
+    - name: installing php
+      package:
+        name: php
+        state: present
+
+    - name: starting httpd service
+      service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: installing git
+      package:
+        name: git
+        state: present
+
+    - name: making folder
+      file:
+        path: /var/www/html/web
+        state: directory
+        mode: '0755'
+
+    - name: cloning git repo
+      ansible.builtin.git:
+        # כאן השרת שלך שואב את הקוד ישירות מהריפוזיטורי האישי שלך!
+        repo: "https://github.com/SquareFace7/devops-final-project.git"
+        dest: /var/www/html/web
