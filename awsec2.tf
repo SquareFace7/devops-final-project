@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "terraform_demo" {
-  ami                    = "ami-0b5a4e51202cd98e5"
+  ami                    = "ami-0236922087fa98b6e"
   instance_type          = "t3.micro"
   availability_zone      = "us-east-1c"
   
