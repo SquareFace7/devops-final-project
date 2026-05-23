@@ -8,7 +8,7 @@ resource "aws_instance" "terraform_demo" {
   availability_zone      = "us-east-1c"
   
   # מזהה חומת האש החדש שיצרת
-  vpc_security_group_ids = ["sg-05d6cb41399688047"] 
+  vpc_security_group_ids = ["sg-0c4baf984865987d5"] 
   
   # שם המפתח שלך
   key_name               = "eliad-key" 
