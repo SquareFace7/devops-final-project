@@ -29,6 +29,6 @@ To run this pipeline, the following credentials must be configured in Jenkins:
 * `aws-credentials-global`: AWS Access Key and Secret Key for Terraform authentication.
 * `aws-ssh-key`: The private `.pem` SSH key (e.g., `eliad-key.pem`) for Ansible to authenticate into the created EC2 instance.
 
-## 🌐 Live Deployment
+## Live Deployment
 Upon a successful build, Jenkins outputs the dynamic IP address. The application can be accessed via:
 `http://<EC2_PUBLIC_IP>/web/index.html`
