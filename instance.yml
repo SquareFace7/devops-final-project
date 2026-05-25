@@ -25,14 +25,16 @@
         name: git
         state: present
 
-    - name: making folder
+    - name: ensure web root exists
       file:
-        path: /var/www/html/web
+        path: /var/www/html
         state: directory
         mode: '0755'
 
-    - name: cloning git repo
+    - name: clone git repo to temp directory
       ansible.builtin.git:
-        # כאן השרת שלך שואב את הקוד ישירות מהריפוזיטורי האישי שלך!
         repo: "https://github.com/SquareFace7/devops-final-project.git"
-        dest: /var/www/html/web
+        dest: /var/www/html/temp_repo
+
+    - name: copy game content to web root
+      shell: cp -r /var/www/html/temp_repo/Game/* /var/www/html/
