@@ -1,7 +1,7 @@
 ---
 - name: deploy nodejs application
   hosts: all
-  become: true  # מריץ את ההתקנות עם הרשאות מנהל
+  become: true
 
   tasks:
     - name: install standard packages
@@ -10,6 +10,12 @@
           - httpd
           - git
         state: present
+
+    # שלב חדש: מסירים כל גרסת nodejs קיימת כדי לוודא ניקיון
+    - name: remove existing nodejs
+      package:
+        name: nodejs
+        state: absent
 
     - name: setup nodejs repository
       shell: curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
@@ -22,6 +28,12 @@
         name: nodejs
         state: present
         update_cache: yes
+
+    # בדיקה מהירה לראות איזו גרסה הותקנה כדי שנוכל לראות בלוג אם הצלחנו
+    - name: check node version
+      shell: node -v
+      register: node_version
+    - debug: msg="Node version is {{ node_version.stdout }}"
 
     - name: starting httpd service
       service:
@@ -49,5 +61,4 @@
       shell: rm -rf /var/www/html/*
 
     - name: copy build result to web root
-      # שים לב: אם התיקייה שנוצרת אצלך היא build במקום dist, תשנה כאן את dist ל-build
       shell: cp -r /tmp/my_game/Game/dist/* /var/www/html/
