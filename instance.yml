@@ -4,12 +4,20 @@
   become: true
 
   tasks:
-    - name: install packages
+    - name: install standard packages
       package:
         name: 
           - httpd
           - git
-          - nodejs
+        state: present
+
+    # משימה חדשה: התקנת מאגר הגרסאות החדש של Node.js
+    - name: setup nodejs repository
+      shell: curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+
+    - name: install nodejs
+      package:
+        name: nodejs
         state: present
 
     - name: starting httpd service
@@ -26,7 +34,7 @@
     - name: install dependencies
       command: npm install
       args:
-        chdir: /tmp/my_game/Game  # וודא שהנתיב לתיקיית המשחק נכון
+        chdir: /tmp/my_game/Game
 
     - name: build the project
       command: npm run build
@@ -37,5 +45,5 @@
       shell: rm -rf /var/www/html/*
 
     - name: copy build result to web root
-      # בדרך כלל תיקיית ה-Build נקראת dist. אם היא נקראת אחרת, שנה כאן
+      # אם התיקייה אצלך היא build במקום dist, תשנה כאן
       shell: cp -r /tmp/my_game/Game/dist/* /var/www/html/
