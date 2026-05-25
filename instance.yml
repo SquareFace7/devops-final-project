@@ -1,17 +1,15 @@
 ---
-- name: integration of terraform and ansible
+- name: deploy nodejs application
   hosts: all
-  become: true  # מריץ את ההתקנות עם הרשאות מנהל
+  become: true
 
   tasks:
-    - name: installing httpd
+    - name: install packages
       package:
-        name: httpd
-        state: present
-
-    - name: installing php
-      package:
-        name: php
+        name: 
+          - httpd
+          - git
+          - nodejs
         state: present
 
     - name: starting httpd service
@@ -20,21 +18,24 @@
         state: started
         enabled: true
 
-    - name: installing git
-      package:
-        name: git
-        state: present
-
-    - name: ensure web root exists
-      file:
-        path: /var/www/html
-        state: directory
-        mode: '0755'
-
-    - name: clone git repo to temp directory
+    - name: clone git repo
       ansible.builtin.git:
         repo: "https://github.com/SquareFace7/devops-final-project.git"
-        dest: /var/www/html/temp_repo
+        dest: /tmp/my_game
 
-    - name: copy game content to web root
-      shell: cp -r /var/www/html/temp_repo/Game/* /var/www/html/
+    - name: install dependencies
+      command: npm install
+      args:
+        chdir: /tmp/my_game/Game  # וודא שהנתיב לתיקיית המשחק נכון
+
+    - name: build the project
+      command: npm run build
+      args:
+        chdir: /tmp/my_game/Game
+
+    - name: remove old files
+      shell: rm -rf /var/www/html/*
+
+    - name: copy build result to web root
+      # בדרך כלל תיקיית ה-Build נקראת dist. אם היא נקראת אחרת, שנה כאן
+      shell: cp -r /tmp/my_game/Game/dist/* /var/www/html/
