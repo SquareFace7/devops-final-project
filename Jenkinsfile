@@ -13,7 +13,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // מוריד את הקוד מה-Repository
                 checkout scm
             }
         }
@@ -27,8 +26,8 @@ pipeline {
         stage('Terraform Action') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'aws-credentials-global', 
-                                                 passwordVariable: 'AWS_SECRET_ACCESS_KEY', 
-                                                 usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                                                passwordVariable: 'AWS_SECRET_ACCESS_KEY', 
+                                                usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     script {
                         if (params.ACTION == 'apply') {
                             sh 'terraform apply -auto-approve'
@@ -41,20 +40,16 @@ pipeline {
         }
 
         stage('Run Ansible Playbook') {
-            // השלב הזה ירוץ רק אם בחרנו להקים את המכונה (apply)
             when { expression { params.ACTION == 'apply' } }
             steps {
                 script {
-                    // שליפת ה-IP מטרפורם
                     def instanceIp = sh(script: "terraform output -raw instance_ip", returnStdout: true).trim()
                     
-                    // יצירת קובץ אינוונטורי זמני
                     writeFile file: 'inventory_fixed.ini', text: "[all]\n${instanceIp}"
                     
-                    // הרצת Ansible עם המפתח מה-Credentials
                     withCredentials([sshUserPrivateKey(credentialsId: 'aws-ssh-key', 
-                                                     keyFileVariable: 'SSH_KEY', 
-                                                     usernameVariable: 'SSH_USER')]) {
+                                                      keyFileVariable: 'SSH_KEY', 
+                                                      usernameVariable: 'SSH_USER')]) {
                         sh """
                             export ANSIBLE_CONFIG=./ansible.cfg
                             export ANSIBLE_HOST_KEY_CHECKING=False
@@ -67,20 +62,18 @@ pipeline {
             }
         }
 
-        // --- השלב החדש שהוספנו: ולידציה של האתר ---
+        // --- כאן ביצענו את התיקון לנתיב החדש ---
         stage('Website Validation') {
             when { expression { params.ACTION == 'apply' } }
             steps {
                 script {
                     def instanceIp = sh(script: "terraform output -raw instance_ip", returnStdout: true).trim()
-                    echo "Checking if the website is up and running at http://${instanceIp}/web/index.html ..."
+                    echo "Checking if the website is up and running at http://${instanceIp}/index.html ..."
                     
                     sh """
-                        # ממתינים 10 שניות כדי לתת לשרת ה-Web לעלות באופן מלא
                         sleep 10
-                        
-                        # מבצעים קריאה לאתר ובודקים את קוד התגובה
-                        HTTP_STATUS=\$(curl -o /dev/null -s -w "%{http_code}\n" http://${instanceIp}/web/index.html)
+                        # בודקים את הכתובת הראשית החדשה (ללא ה-web/)
+                        HTTP_STATUS=\$(curl -o /dev/null -s -w "%{http_code}\n" http://${instanceIp}/index.html)
                         
                         if [ "\$HTTP_STATUS" -eq 200 ]; then
                             echo "Validation PASSED! Received HTTP Status: 200 OK"
@@ -97,14 +90,13 @@ pipeline {
     post {
         success {
             script {
-                // הצגת הכתובת רק אם המכונה הוקמה בהצלחה
                 if (params.ACTION == 'apply') {
                     def finalIp = sh(script: "terraform output -raw instance_ip", returnStdout: true).trim()
                     echo "-----------------------------------------------------------"
                     echo "DEPLOYMENT SUCCESSFUL!"
                     echo "New VM IP Address: ${finalIp}"
-                    // עדכנו כאן את הסיומת ל-html
-                    echo "Web URL: http://${finalIp}/web/index.html"
+                    // עדכנו כאן את הכתובת ללא ה-web/
+                    echo "Web URL: http://${finalIp}/index.html"
                     echo "-----------------------------------------------------------"
                 } else {
                     echo "-----------------------------------------------------------"
@@ -114,7 +106,6 @@ pipeline {
             }
         }
         always {
-            // ניקוי קבצים זמניים
             sh 'rm -f inventory_fixed.ini'
         }
     }
