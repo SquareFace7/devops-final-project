@@ -1,7 +1,7 @@
 ---
 - name: deploy nodejs application
   hosts: all
-  become: true
+  become: true  # מריץ את ההתקנות עם הרשאות מנהל
 
   tasks:
     - name: install standard packages
@@ -11,7 +11,6 @@
           - git
         state: present
 
-    # משימה חדשה: התקנת מאגר הגרסאות החדש של Node.js
     - name: setup nodejs repository
       shell: curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
 
@@ -30,6 +29,7 @@
       ansible.builtin.git:
         repo: "https://github.com/SquareFace7/devops-final-project.git"
         dest: /tmp/my_game
+        force: yes
 
     - name: install dependencies
       command: npm install
@@ -45,5 +45,5 @@
       shell: rm -rf /var/www/html/*
 
     - name: copy build result to web root
-      # אם התיקייה אצלך היא build במקום dist, תשנה כאן
+      # שים לב: אם התיקייה שנוצרת אצלך היא build במקום dist, תשנה כאן
       shell: cp -r /tmp/my_game/Game/dist/* /var/www/html/
