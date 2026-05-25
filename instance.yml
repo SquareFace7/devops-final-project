@@ -14,10 +14,14 @@
     - name: setup nodejs repository
       shell: curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
 
+    - name: clean package cache
+      shell: dnf clean all
+
     - name: install nodejs
       package:
         name: nodejs
         state: present
+        update_cache: yes
 
     - name: starting httpd service
       service:
@@ -45,5 +49,5 @@
       shell: rm -rf /var/www/html/*
 
     - name: copy build result to web root
-      # שים לב: אם התיקייה שנוצרת אצלך היא build במקום dist, תשנה כאן
+      # שים לב: אם התיקייה שנוצרת אצלך היא build במקום dist, תשנה כאן את dist ל-build
       shell: cp -r /tmp/my_game/Game/dist/* /var/www/html/
